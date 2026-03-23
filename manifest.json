@@ -1,9 +1,9 @@
 {
   "name": "WaveCheck",
   "short_name": "WaveCheck",
-  "description": "Previsao de surf com dados reais",
-  "start_url": ".",
-  "scope": ".",
+  "description": "Previsão de surf com dados reais — Salvador e Bahia",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#060d1a",

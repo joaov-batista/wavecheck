@@ -1,6 +1,21 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════
+// SEGURANÇA — sanitização contra XSS
+// Todos os dados vindos do Firestore devem passar por esc()
+// antes de serem interpolados em innerHTML
+// ═══════════════════════════════════════════════════════════
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// ═══════════════════════════════════════════════════════════
 // FIREBASE
 // ═══════════════════════════════════════════════════════════
 const firebaseConfig = {
@@ -331,10 +346,10 @@ function computeSurfScore(slot, beach, userLevel = 'intermediario') {
 
   // Labels
   let label, color, worthIt, emoji;
-  if      (score >= 80) { label = 'CLÁSSICO'; color = '#00e676'; worthIt = 'SIM';    emoji = ''; }
-  else if (score >= 65) { label = 'BOM';      color = '#29b6f6'; worthIt = 'SIM';    emoji = ''; }
-  else if (score >= 45) { label = 'SURFÁVEL'; color = '#ffb74d'; worthIt = 'TALVEZ'; emoji = ''; }
-  else                  { label = 'RUIM';     color = '#ef5350'; worthIt = 'NÃO';    emoji = ''; }
+  if      (score >= 80) { label = 'CLÁSSICO'; color = '#00e676'; worthIt = 'SIM';    emoji = '🔥'; }
+  else if (score >= 65) { label = 'BOM';      color = '#29b6f6'; worthIt = 'SIM';    emoji = '🤙'; }
+  else if (score >= 45) { label = 'SURFÁVEL'; color = '#ffb74d'; worthIt = 'TALVEZ'; emoji = '🏄'; }
+  else                  { label = 'RUIM';     color = '#ef5350'; worthIt = 'NÃO';    emoji = '😶‍🌫️'; }
 
   const simpleText = genSimpleText(slot, beach, score, windType, tideType);
   const whyText    = genWhyText(slot, beach, bd, windType, tideType);
@@ -447,6 +462,16 @@ document.addEventListener('DOMContentLoaded', () => {
       hideSplash();
       renderLogin();
     }
+
+    function animateCards() {
+  const cards = document.querySelectorAll('.card, .beach-card, .forecast-card, .session-card, .stat-card, .panel-card');
+
+  cards.forEach((card, index) => {
+    card.style.animationDelay = `${index * 40}ms`;
+    card.classList.add('card-animate');
+  });
+}
+animateCards();
   });
 });
 
@@ -478,11 +503,11 @@ async function onBeachChange(beachId) {
 
 function renderCurrentPage() {
   if (S.page === 'home')      renderHome();
-  if (S.page === 'forecast')  renderForecastPage();
+  if (S.page === 'forecast')  renderForecastPage().catch(e => console.error('renderForecastPage:', e));
   if (S.page === 'beaches')   renderBeachesPage('');
   if (S.page === 'tide')      renderTidePage();
-  if (S.page === 'community') renderCommunity();
-  if (S.page === 'profile')   renderProfile();
+  if (S.page === 'community') renderCommunity().catch(e => console.error('renderCommunity:', e));
+  if (S.page === 'profile')   renderProfile().catch(e => console.error('renderProfile:', e));
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1353,13 +1378,13 @@ async function loadForecast(beachId) {
 
   } catch(e) {
     console.warn('Open-Meteo falhou:', e.message);
-    // Tenta cache offline
+    // Tenta cache offline (válido por 6h — dados mais frescos)
     try {
       const cached = JSON.parse(localStorage.getItem('wc_last_' + bId) || 'null');
-      if (cached && Date.now() - cached.ts < 24 * 3600 * 1000) {
+      if (cached && Date.now() - cached.ts < 6 * 3600 * 1000) {
         S.slots   = cached.slots;
         S.apiReal = false;
-        toast('Usando dados do cache (offline)', 'warn');
+        toast('Sem conexão — usando dados do cache', 'warn');
         return;
       }
     } catch {}
@@ -1864,19 +1889,22 @@ async function renderCommunity() {
       const isMe   = c.userId === S.user?.uid;
       const fc     = feelCfg[c.feeling] || feelCfg.ok;
       const avatar = (c.username || '?')[0].toUpperCase();
-      const timeStr = c.time ? ` às ${c.time}` : '';
-      const scoreStr = c.waveScore != null ? `<span class="feed-score" style="color:${fc.color}">Score ${c.waveScore}</span>` : '';
+      const timeStr = c.time ? ` às ${esc(c.time)}` : '';
+      // waveScore vem do nosso próprio código, mas sanitizamos por via das dúvidas
+      const scoreVal = c.waveScore != null ? parseFloat(c.waveScore) : null;
+      const scoreStr = Number.isFinite(scoreVal)
+        ? `<span class="feed-score" style="color:${fc.color}">Score ${scoreVal}</span>` : '';
       return `
         <div class="feed-card${isMe ? ' feed-me' : ''}" style="animation-delay:${idx*30}ms">
           <div class="feed-row">
-            <div class="feed-av${isMe ? ' feed-av-me' : ''}">${avatar}</div>
+            <div class="feed-av${isMe ? ' feed-av-me' : ''}">${esc(avatar)}</div>
             <div class="feed-info">
-              <span class="feed-name">${isMe ? 'Você' : (c.username || 'Surfista')}</span>
-              <span class="feed-meta">${c.beachName || c.beachId}${timeStr} · ${ago(c.createdAt?.toDate?.())}</span>
+              <span class="feed-name">${isMe ? 'Você' : esc(c.username || 'Surfista')}</span>
+              <span class="feed-meta">${esc(c.beachName || c.beachId)}${timeStr} · ${ago(c.createdAt?.toDate?.())}</span>
             </div>
-            <span class="feel-tag" style="background:${fc.color}22;color:${fc.color};border:1px solid ${fc.color}44">${fc.icon} ${fc.label}</span>
+            <span class="feel-tag" style="background:${fc.color}22;color:${fc.color};border:1px solid ${fc.color}44">${esc(fc.icon)} ${esc(fc.label)}</span>
           </div>
-          ${c.comment ? `<p class="feed-comment">${c.comment}</p>` : ''}
+          ${c.comment ? `<p class="feed-comment">${esc(c.comment)}</p>` : ''}
           ${scoreStr}
         </div>`;
     }).join('');
@@ -1916,9 +1944,9 @@ async function renderProfile() {
           return `<div class="hist-item" style="animation-delay:${idx*40}ms">
             <div class="hist-dot" style="background:${col}"></div>
             <div class="hist-info">
-              <span class="hist-beach">${beachName(c.beachId)}</span>
-              <span class="hist-when">${dateShort(c.date)} · ${femap[c.feeling]||c.feeling}</span>
-              ${c.comment?`<span class="hist-note">${c.comment}</span>`:''}
+              <span class="hist-beach">${esc(beachName(c.beachId))}</span>
+              <span class="hist-when">${esc(dateShort(c.date))} · ${esc(femap[c.feeling]||c.feeling)}</span>
+              ${c.comment?`<span class="hist-note">${esc(c.comment)}</span>`:''}
             </div></div>`;
         }).join('');
       }
@@ -1964,7 +1992,7 @@ function renderDailyCards(id) {
     const minH   = Math.min(...slots.map(s=>s.sh)).toFixed(1);
     const best   = slots.reduce((a,b)=>a.score>b.score?a:b);
     const avgP   = Math.round(slots.reduce((a,s)=>a+s.sp,0)/slots.length);
-    const emoji  = avg>=80?'':avg>=65?'':avg>=45?'':'';
+    const emoji  = avg>=80?'🔥':avg>=65?'🤙':avg>=45?'🏄':'😶‍🌫️';
     return `<div class="daily-card" style="animation-delay:${idx*50}ms">
       <div class="daily-left">
         <span class="daily-day">${dayName(day)}</span>
@@ -2007,23 +2035,6 @@ function renderBreakdownBars(id, bd) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// BEACH MODAL
-// ═══════════════════════════════════════════════════════════
-function populateBeachModal(filter) {
-  const el = document.getElementById('beach-modal-list'); if (!el) return;
-  const list = BEACHES.filter(b => b.name.toLowerCase().includes(filter.toLowerCase()));
-  el.innerHTML = list.map(b => `
-    <button class="modal-beach-row${b.id===S.beach?' active':''}" data-bid="${b.id}">
-      <div><span class="mbr-name">${b.name}</span><span class="mbr-region">${b.region} · ${levelLabel(b.level)}</span></div>
-      <div class="mbr-dot" style="background:${b.grad.match(/#[0-9a-fA-F]{6}/g)?.[1]||'#29b6f6'}"></div>
-    </button>`).join('');
-  el.querySelectorAll('.modal-beach-row').forEach(btn => btn.addEventListener('click', () => {
-    closeModal('modal-beach');
-    onBeachChange(btn.dataset.bid);
-  }));
-}
-
-// ═══════════════════════════════════════════════════════════
 // CHECK-IN
 // ═══════════════════════════════════════════════════════════
 function openCheckinModal(sessionId, beachId) {
@@ -2057,7 +2068,18 @@ async function doCheckin() {
   const cur      = currentSlot();
   const btn      = document.getElementById('btn-do-ci');
   if (btn) { btn.disabled = true; btn.textContent = 'Registrando...'; }
+
   try {
+    // ANTI-FARMING: verifica se já fez check-in hoje nesta praia
+    const todayStr = today();
+    const existingSnap = await db.collection('checkins')
+      .where('userId', '==', S.user.uid)
+      .where('beachId', '==', beachId)
+      .where('date', '==', todayStr)
+      .limit(1)
+      .get();
+    const alreadyCheckedIn = !existingSnap.empty;
+
     await db.collection('checkins').add({
       userId:   S.user.uid,
       username: S.profile?.username || 'Surfista',
@@ -2065,23 +2087,33 @@ async function doCheckin() {
       beachName: beach?.name || beachId,
       time:     timeVal,
       feeling:  S.feeling,
-      comment,
+      comment:  comment ? comment.slice(0, 280) : null, // limita tamanho
       waveScore: cur?.score ?? null,
-      date:     today(),
+      date:     todayStr,
       type:     'checkin',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-    const upd = {
-      totalCheckins: (S.profile?.totalCheckins || 0) + 1,
-      streak:        (S.profile?.streak || 0) + 1,
-      bestStreak:    Math.max(S.profile?.bestStreak || 0, (S.profile?.streak || 0) + 1),
-      points:        (S.profile?.points || 0) + 15,
-    };
-    if (parseInt(timeVal) < 7) upd.earlyBird = true;
-    if ((cur?.score || 0) >= 80) upd.classicDay = true;
-    await updateProfile(upd);
-    closeModal('modal-ci');
-    toast(`Check-in em ${beach?.name || beachId} às ${timeVal}! +15 pts`);
+
+    // Só dá pontos se for o primeiro check-in do dia nesta praia
+    if (!alreadyCheckedIn) {
+      const newStreak  = (S.profile?.streak || 0) + 1;
+      const bestStreak = Math.max(S.profile?.bestStreak || 0, newStreak);
+      const upd = {
+        totalCheckins: (S.profile?.totalCheckins || 0) + 1,
+        streak:        newStreak,
+        bestStreak,
+        points:        (S.profile?.points || 0) + 15,
+      };
+      if (parseInt(timeVal) < 7) upd.earlyBird = true;
+      if ((cur?.score || 0) >= 80) upd.classicDay = true;
+      await updateProfile(upd);
+      closeModal('modal-ci');
+      toast(`Check-in em ${beach?.name || beachId} às ${timeVal}! +15 pts`);
+    } else {
+      closeModal('modal-ci');
+      toast(`Sessão registrada em ${beach?.name || beachId}!`);
+    }
+
     if (S.page === 'profile')   renderProfile();
     if (S.page === 'community') renderCommunity();
   } catch(e) { toast(e.message, 'err'); }
@@ -2098,6 +2130,15 @@ async function doCommCheckin() {
   const btn     = document.getElementById('btn-comm-submit');
   if (btn) { btn.disabled = true; btn.textContent = 'Publicando...'; }
   try {
+    const todayStr = today();
+    const existingSnap = await db.collection('checkins')
+      .where('userId', '==', S.user.uid)
+      .where('beachId', '==', beachId)
+      .where('date', '==', todayStr)
+      .limit(1)
+      .get();
+    const alreadyCheckedIn = !existingSnap.empty;
+
     await db.collection('checkins').add({
       userId:    S.user.uid,
       username:  S.profile?.username || 'Surfista',
@@ -2105,31 +2146,39 @@ async function doCommCheckin() {
       beachName: beach?.name || beachId,
       time:      timeVal,
       feeling,
-      comment,
+      comment:   comment ? comment.slice(0, 280) : null,
       waveScore: currentSlot()?.score ?? null,
-      date:      today(),
+      date:      todayStr,
       type:      'checkin',
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-    const upd = {
-      totalCheckins: (S.profile?.totalCheckins || 0) + 1,
-      streak:        (S.profile?.streak || 0) + 1,
-      bestStreak:    Math.max(S.profile?.bestStreak || 0, (S.profile?.streak || 0) + 1),
-      points:        (S.profile?.points || 0) + 15,
-    };
-    await updateProfile(upd);
+
+    if (!alreadyCheckedIn) {
+      const newStreak  = (S.profile?.streak || 0) + 1;
+      const upd = {
+        totalCheckins: (S.profile?.totalCheckins || 0) + 1,
+        streak:        newStreak,
+        bestStreak:    Math.max(S.profile?.bestStreak || 0, newStreak),
+        points:        (S.profile?.points || 0) + 15,
+      };
+      await updateProfile(upd);
+      toast(`Sessão em ${beach?.name} publicada! +15 pts`);
+    } else {
+      toast(`Sessão em ${beach?.name} publicada!`);
+    }
+
     // Limpa formulário
     if (document.getElementById('comm-comment')) document.getElementById('comm-comment').value = '';
     document.querySelectorAll('#comm-feeling-grid .feel-btn').forEach(b => b.classList.toggle('active', b.dataset.cf === 'bom'));
     S.commFeeling = 'bom';
-    toast(`Sessão em ${beach?.name} publicada! +15 pts`);
     renderCommunity();
   } catch(e) { toast(e.message, 'err'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = 'Publicar sessão'; } }
 }
 
 async function saveProfileEdit() {
-  const name = fval('edit-name').trim();
+  const raw  = fval('edit-name');
+  const name = raw.replace(/<[^>]*>/g, '').trim().slice(0, 60); // sanitiza + limita
   if (!name) { toast('Digite um nome', 'err'); return; }
   await updateProfile({ username: name });
   closeModal('modal-edit');

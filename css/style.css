@@ -146,20 +146,38 @@ input, select { font-family: var(--ff-body); }
 
 /* ── App Layout ─────────────────────────────── */
 .app {
-  position:fixed; inset:0; max-width:430px; margin:0 auto;
-  background:var(--bg); display:flex; flex-direction:column;
-  overflow:hidden;
+  position: relative;
+
+  width: 100%;
+  min-height: 100dvh;
+
+  /* RESPONSIVO REAL */
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--bg);
 }
 .app-enter { animation: app-in .4s var(--ease); }
 @keyframes app-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 .status-pad { height:var(--safe-top); background:transparent; }
 
 /* ── Pages ──────────────────────────────────── */
-.page {
-  display:none; flex-direction:column;
-  position:absolute; inset:0;
-  top: calc(var(--header-h) + var(--safe-top));
-  bottom: var(--nav-h);
+.app {
+  position: relative;
+
+  width: 100%;
+  min-height: 100dvh;
+
+  /* RESPONSIVO REAL */
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+
   background: var(--bg);
 }
 .page.page-active { display:flex; animation: pg-in .22s var(--ease); }
@@ -597,3 +615,71 @@ input, select { font-family: var(--ff-body); }
 /* ── Feed me highlight ───── */
 .feed-me { border-color: var(--accent) !important; background: rgba(61,142,255,.04) !important; }
 .feed-av-me { background: linear-gradient(135deg,var(--accent),#6b9fff) !important; }
+
+.grid {
+  display: grid;
+  gap: var(--sp-md);
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* TABLET */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* DESKTOP */
+@media (min-width: 1025px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--r-lg);
+  padding: var(--sp-md);
+
+  border: 1px solid var(--bdr);
+
+  transition: 
+    transform .25s var(--ease),
+    box-shadow .25s var(--ease),
+    opacity .25s;
+
+  will-change: transform;
+}
+
+/* ENTRADA */
+.card {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: cardIn .4s var(--ease) forwards;
+}
+
+@keyframes cardIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* HOVER (DESKTOP) */
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+}
+
+/* TAP (MOBILE) */
+.card:active {
+  transform: scale(.98);
+}

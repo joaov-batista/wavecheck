@@ -73,13 +73,46 @@ input,select { font-family:var(--fb); }
   background:#fff;
   animation:fade-up .3s var(--ease);
 }
+@media (min-width: 900px) {
+  .login-screen {
+    flex-direction: row;
+  }
 
+  .login-left {
+    width: 45%;
+  }
+
+  .login-right {
+    width: 55%;
+  }
+}
+
+@media (max-width: 899px) {
+  .login-left {
+    padding: 30px 20px;
+  }
+
+  .login-right {
+    padding: 24px 16px;
+  }
+}
+
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  html {
+    font-size: 14px;
+  }
+}
 /* ── Painel esquerdo — gradiente + marca ── */
 .login-left {
   background:linear-gradient(160deg, #1a4a80 0%, #0d2a50 60%, #060d1a 100%);
   display:flex;
   flex-direction:column;
   align-items:center;
+  
   justify-content:center;
   padding:48px 36px;
   gap:20px;
@@ -727,11 +760,17 @@ input,select { font-family:var(--fb); }
 
   /* ── Reset do body — scroll natural, fundo escuro ── */
   body {
-    background:#060d1a;
-    overflow-y:auto;
-    overflow-x:hidden;
-    min-height:100vh;
-  }
+  font-family: var(--fb);
+  background: var(--bg);
+  color: var(--t1);
+  min-height: 100dvh;
+
+  /* CORREÇÃO */
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  transition: background .3s, color .3s;
+}
 
   /* ── Root libera do fixed mobile ── */
   #root {
@@ -1043,263 +1082,72 @@ input,select { font-family:var(--fb); }
 
 
 
-/* ═══════════════════════════════════════════════════════════════
-   DESKTOP — sidebar esquerda fixa, conteudo ocupa o restante
-   Mobile nao alterado acima deste ponto
-════════════════════════════════════════════════════════════════ */
-@media (min-width:800px) {
+/* ─────────────────────────────────────────────────────────
+   CORREÇÕES — adicionadas na auditoria v1
+───────────────────────────────────────────────────────── */
 
-  body { background:#060d1a; overflow-y:auto; overflow-x:hidden; min-height:100vh; }
+/* fc-side-panel e community-form-col ocultos no mobile */
+.fc-side-panel       { display:none; }
+.community-form-col  { display:none; }
 
-  #root { position:static; inset:auto; min-height:100vh; }
+/* Notif button default */
+#btn-notif-toggle { width:100%; }
 
-  .app-wrap {
-    position:static;
-    inset:auto;
-    width:100%;
-    max-width:none;
-    margin:0;
-    min-height:100vh;
-    display:flex;
-    flex-direction:row;
-    overflow:visible;
-    background:var(--bg);
-  }
-
-  .sb-pad { display:none; }
-
-  /* ── Sidebar — esquerda, fixa, 240px ── */
-  .bot-nav {
-    /* Override total do mobile */
-    position:fixed;
-    top:0; left:0; bottom:0; right:auto;
-    transform:none;
-    margin:0;
-    width:240px;
-    height:100vh;
-    /* Layout vertical */
-    display:flex;
-    flex-direction:column;
-    align-items:stretch;
-    justify-content:flex-start;
-    flex-wrap:nowrap;
-    padding:0 0 24px 0;
-    gap:2px;
-    overflow:hidden;
-    overflow-y:auto;
-    /* Visual */
-    border-top:none;
-    border-bottom:none;
-    border-right:1px solid var(--bdr);
-    background:var(--bg2);
-    z-index:300;
-    /* Override flex do mobile */
-    justify-content:flex-start;
-  }
-
-  .bot-nav::before {
-    content:'WaveCheck';
-    font-family:var(--ff);
-    font-size:1.1rem;
-    font-weight:800;
-    letter-spacing:-.4px;
-    color:var(--t1);
-    display:block;
-    padding:22px 20px 18px;
-    border-bottom:1px solid var(--bdr);
-    margin-bottom:8px;
-    flex-shrink:0;
-  }
-
-  .nav-btn {
-    flex:none;
-    min-width:0;
-    flex-direction:row;
-    justify-content:flex-start;
-    align-items:center;
-    padding:10px 16px;
-    border-radius:var(--r-md);
-    margin:0 8px;
-    width:calc(100% - 16px);
-    color:var(--t2);
-    gap:12px;
-    font-size:.88rem;
-    transition:background .13s, color .13s;
-  }
-  .nav-btn:active { transform:none; opacity:.8; }
-  .nav-btn span   { font-size:.88rem; font-weight:500; white-space:nowrap; max-width:none; overflow:visible; }
-  .nav-btn svg    { width:18px; height:18px; flex-shrink:0; }
-  .nav-btn.active { background:var(--accg); color:var(--acc); font-weight:700; }
-  .nav-btn.active svg { filter:drop-shadow(0 0 4px var(--acc)); }
-  .nav-btn:not(.active):hover { background:var(--card); color:var(--t1); }
-
-  /* ── Area principal ── */
-  #main-area {
-    margin-left:240px;
-    flex:1;
-    min-width:0;
-    min-height:100vh;
-    position:relative;
-    overflow:visible;
-    inset:auto;
-  }
-
-  .topbar {
-    position:sticky !important;
-    top:0; left:0; right:0;
-    max-width:none;
-    margin:0;
-    z-index:200;
-  }
-
-  .pg {
-    position:relative !important;
-    inset:auto !important;
-    top:auto !important;
-    bottom:auto !important;
-    display:none;
-    flex-direction:column;
-    min-height:calc(100vh - var(--hdr-h));
-    background:var(--bg);
-  }
-  .pg.active { display:flex; }
-
-  .pg-body {
-    padding:28px 36px 60px;
-    overflow:visible;
-    flex:1;
-    overflow-y:visible;
-    max-height:none;
-  }
-  .pg-body::-webkit-scrollbar { display:none; }
-
-  /* Beach selector no desktop — usa hdr-name grande */
-  .beach-selector-btn { gap:8px; }
-
-  /* Topbar forecast — flexivel */
-  #pg-forecast .topbar .tb-left { flex-direction:column; gap:0; }
-
-  /* Wave animation maior no desktop */
-  .fc-wave-svg { width:120px; height:28px; }
-  .fc-score-num { font-size:3.5rem; }
-
-  /* ── HOME — 2 colunas ── */
-  #pg-home .pg-body {
-    display:grid;
-    grid-template-columns:1fr 360px;
-    gap:24px;
-    align-items:start;
-    max-width:1400px;
-  }
-  #home-skeleton                     { grid-column:1/-1; }
-  #home-content                      { display:contents; }
-  .hero-card                         { grid-column:1/-1; }
-  .quick-stats                       { grid-column:1/-1; }
-  .why-block                         { grid-column:1; }
-  .section:has(#home-hourly)         { grid-column:1; }
-  .score-breakdown                   { grid-column:2; align-self:start; position:sticky; top:calc(var(--hdr-h) + 20px); }
-  .section:has(#tide-card)           { grid-column:1/-1; }
-
-  /* ── PREVISAO — 2 colunas ── */
-  #pg-forecast .pg-body {
-    display:grid;
-    grid-template-columns:1fr 340px;
-    gap:24px;
-    align-items:start;
-    max-width:1400px;
-  }
-  #pg-forecast .beach-banner         { grid-column:1/-1; }
-  #pg-forecast .fc-score-row         { grid-column:1/-1; }
-  #pg-forecast #fc-loading           { grid-column:1/-1; }
-  #pg-forecast #fc-body              { grid-column:1/-1; display:contents; }
-  #pg-forecast #view-simple          { grid-column:1; }
-  #pg-forecast #view-technical       { grid-column:1; }
-  #view-simple.hidden,
-  #view-technical.hidden             { display:none !important; }
-  #pg-forecast .fc-side-panel        { display:flex !important; }
-  .fc-side-panel {
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-    grid-column:2;
-    position:sticky;
-    top:calc(var(--hdr-h) + 20px);
-    align-self:start;
-  }
-
-  /* ── PRAIAS — 2 colunas ── */
-  #pg-beaches .pg-body {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:24px 40px;
-    align-items:start;
-    max-width:1200px;
-  }
-  #pg-beaches .pg-body > input       { grid-column:1/-1; }
-  #pg-beaches .section               { margin-bottom:0; }
-
-  /* ── MARE — 2 colunas ── */
-  #pg-tide .pg-body {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:24px 40px;
-    align-items:start;
-    max-width:1200px;
-  }
-  #pg-tide .section                  { margin-bottom:0; }
-  #pg-tide .tide-status-card         { grid-column:1/-1; }
-
-  /* ── COMUNIDADE — conteudo + form ── */
-  #pg-community .pg-body {
-    display:grid;
-    grid-template-columns:1fr 320px;
-    gap:24px;
-    align-items:start;
-    max-width:1400px;
-  }
-  #pg-community .section             { grid-column:1; margin-bottom:0; }
-  .community-form-col {
-    display:block;
-    grid-column:2;
-    position:sticky;
-    top:calc(var(--hdr-h) + 20px);
-    align-self:start;
-  }
-
-  /* ── PERFIL — 2 colunas ── */
-  #pg-profile .pg-body {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:24px 40px;
-    align-items:start;
-    max-width:1200px;
-  }
-  #pg-profile .profile-hero                      { grid-column:1/-1; }
-  #pg-profile .pref-section                      { grid-column:1; }
-  #pg-profile .stats-row                         { grid-column:2; }
-  #pg-profile .section:has(#btn-checkin-profile) { grid-column:1/-1; }
-  #pg-profile .section:has(#hist-list)           { grid-column:1/-1; }
-
-
-  /* ── Toasts ── */
-  .toasts-wrap {
-    left:calc(240px + 50%);
-    transform:translateX(calc(-50% - 120px));
-    max-width:340px;
-  }
-
-  /* ── Modals ── */
-  .modal-ov    { align-items:center; }
-  .modal-sheet { border-radius:var(--r-xl); max-width:480px; margin:auto; }
-
-  .hero-score-num { font-size:4.2rem; }
-  .hero-beach     { font-size:1.45rem; }
+/* Botão "Registrar sessao" na seção de comunidade mobile */
+.btn-add-small {
+  font-size:.76rem;
+  font-weight:700;
+  padding:7px 14px;
+  border-radius:var(--r-f);
+  background:var(--accg);
+  color:var(--acc);
+  border:1px solid rgba(61,142,255,.3);
+  transition:opacity .15s;
 }
+.btn-add-small:active { opacity:.75; }
 
-@media (min-width:1400px) {
-  .bot-nav   { width:260px; }
-  #main-area { margin-left:260px; }
-  .toasts-wrap { left:calc(260px + 50%); }
-  #pg-home .pg-body     { grid-template-columns:1fr 400px; }
-  #pg-forecast .pg-body { grid-template-columns:1fr 380px; }
+/* Side cards (painel lateral desktop) */
+.side-card {
+  background:var(--card);
+  border:1px solid var(--bdr);
+  border-radius:var(--r-md);
+  padding:var(--sp-md);
+}
+.side-score-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r-md); padding:var(--sp-md); }
+.side-score-inner { border:1px solid; border-radius:var(--r-md); padding:var(--sp-md); display:flex; flex-direction:column; gap:6px; }
+.side-score-num { font-family:var(--ff); font-size:2.8rem; font-weight:800; line-height:1; }
+.side-score-lbl { font-size:.62rem; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+.side-score-text { font-size:.8rem; color:var(--t2); line-height:1.55; margin-top:4px; }
+
+/* Sentiment bars */
+.sentiment-row { display:flex; flex-direction:column; gap:8px; margin-bottom:var(--sp-sm); }
+.sent-bar-row { display:grid; grid-template-columns:52px 1fr 28px; align-items:center; gap:8px; }
+.sent-label { font-size:.72rem; font-weight:600; color:var(--t2); }
+.sent-track { height:6px; background:var(--bg2); border-radius:var(--r-f); overflow:hidden; }
+.sent-fill { height:100%; border-radius:var(--r-f); transition:width .6s var(--ease); }
+.sent-count { font-size:.72rem; font-weight:700; text-align:right; }
+
+/* Feed cards */
+.feed-col { display:flex; flex-direction:column; gap:var(--sp-sm); }
+.feed-card { background:var(--card); border:1px solid var(--bdr); border-radius:var(--r-md); padding:var(--sp-sm) var(--sp-md); animation:slot-in .28s var(--ease) both; }
+.feed-me { border-color:rgba(61,142,255,.3); background:rgba(61,142,255,.04); }
+.feed-row { display:flex; align-items:center; gap:var(--sp-sm); margin-bottom:6px; }
+.feed-av { width:32px; height:32px; border-radius:var(--r-f); background:var(--card2); border:1px solid var(--bdr2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.82rem; flex-shrink:0; }
+.feed-av-me { background:linear-gradient(135deg,var(--acc),#6b9fff); color:white; }
+.feed-info { flex:1; min-width:0; }
+.feed-name { display:block; font-weight:700; font-size:.85rem; }
+.feed-meta { display:block; font-size:.68rem; color:var(--t3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.feed-comment { font-size:.8rem; color:var(--t2); line-height:1.5; padding-top:4px; border-top:1px solid var(--bdr); margin-top:4px; }
+.feed-score { display:block; font-size:.72rem; font-weight:700; margin-top:4px; }
+.feel-tag { font-size:.68rem; font-weight:700; padding:4px 8px; border-radius:var(--r-f); flex-shrink:0; white-space:nowrap; }
+
+/* Prefers-reduced-motion — desativa todas as animações */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .hero-waves { animation: none; }
+  .splash-wave { animation: none; }
 }

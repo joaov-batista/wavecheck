@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="WaveCheck"/>
   <meta name="theme-color" content="#060d1a"/>
-  <meta name="description" content="Surf check com dados reais — previsao, mare e condicoes para Salvador e Bahia"/>
+  <meta name="description" content="Surf check com dados reais — previsão, maré e condições para Salvador e Bahia"/>
   <title>WaveCheck</title>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
@@ -16,14 +16,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
-  <!-- Firebase SDK -->
+
+  <!--
+    Firebase SDK — carregado ANTES de app.js porque app.js chama firebase.initializeApp()
+    no topo do arquivo. Se um dia migrar para Supabase, trocar estes scripts e
+    remover o bloco firebaseConfig de app.js.
+  -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body class="dark">
   <div id="root"></div>
+
+  <!-- app.js: monolito único — não carregar auth.js / db.js / beaches.js / forecast.js
+       separadamente pois já estão embutidos e reescritos dentro de app.js -->
   <script src="js/app.js"></script>
+
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
