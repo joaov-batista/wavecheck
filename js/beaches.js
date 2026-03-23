@@ -1,0 +1,95 @@
+// ============================================================
+// js/beaches.js — Dados estáticos das praias (coordenadas reais)
+// Coordenadas usadas para buscar previsão na Open-Meteo
+// ============================================================
+
+const BEACHES = [
+  {
+    id: 'rosa',
+    name: 'Praia do Rosa',
+    region: 'SC, Brasil',
+    lat: -28.1250,
+    lon: -48.6550,
+    orientation: 'Sul',
+    gradient: 'linear-gradient(145deg,#0a2a45 0%,#0d4f7c 55%,#1a7ab5 100%)',
+    bestSwellDir: ['S', 'SSE', 'SE'],
+    bestWindDir: ['NE', 'N', 'NNE'],
+    description: 'Direita bem consistente, ideal para swell de sul.',
+  },
+  {
+    id: 'joaquina',
+    name: 'Joaquina',
+    region: 'SC, Brasil',
+    lat: -27.6400,
+    lon: -48.4700,
+    orientation: 'Leste',
+    gradient: 'linear-gradient(145deg,#0d2b2b 0%,#0a5c5c 55%,#0e8c7a 100%)',
+    bestSwellDir: ['SE', 'E', 'ESE'],
+    bestWindDir: ['W', 'NW', 'SW'],
+    description: 'Beach break poderoso, tubo bem fechado.',
+  },
+  {
+    id: 'campeche',
+    name: 'Campeche',
+    region: 'SC, Brasil',
+    lat: -27.7100,
+    lon: -48.4750,
+    orientation: 'Sul-Leste',
+    gradient: 'linear-gradient(145deg,#0d2f20 0%,#0e6640 55%,#12965a 100%)',
+    bestSwellDir: ['S', 'SSE'],
+    bestWindDir: ['N', 'NE', 'NNE'],
+    description: 'Ondas longas e bem formadas, ótima para longboard.',
+  },
+  {
+    id: 'ferrugem',
+    name: 'Ferrugem',
+    region: 'SC, Brasil',
+    lat: -28.2100,
+    lon: -48.6950,
+    orientation: 'Sul',
+    gradient: 'linear-gradient(145deg,#2d0a10 0%,#7a1520 55%,#b52030 100%)',
+    bestSwellDir: ['S', 'SSW'],
+    bestWindDir: ['NE', 'E', 'ENE'],
+    description: 'Ondas pesadas e tubulares. Intermediário para avançado.',
+  },
+  {
+    id: 'itamambuca',
+    name: 'Itamambuca',
+    region: 'SP, Brasil',
+    lat: -23.3700,
+    lon: -44.8300,
+    orientation: 'Leste',
+    gradient: 'linear-gradient(145deg,#0a1f14 0%,#136b3e 55%,#1aaa60 100%)',
+    bestSwellDir: ['NE', 'E', 'ENE'],
+    bestWindDir: ['W', 'SW', 'NW'],
+    description: 'Beach break consistente com ótimo banco de areia.',
+  },
+  {
+    id: 'maresias',
+    name: 'Maresias',
+    region: 'SP, Brasil',
+    lat: -23.7900,
+    lon: -45.5600,
+    orientation: 'Sul-Leste',
+    gradient: 'linear-gradient(145deg,#0a1520 0%,#0f2d42 55%,#1a4d6b 100%)',
+    bestSwellDir: ['S', 'SE', 'SSE'],
+    bestWindDir: ['W', 'NW'],
+    description: 'Ondas tubulares de direita, uma das melhores de SP.',
+  },
+  {
+    id: 'barra',
+    name: 'Barra da Tijuca',
+    region: 'RJ, Brasil',
+    lat: -23.0100,
+    lon: -43.3600,
+    orientation: 'Sul',
+    gradient: 'linear-gradient(145deg,#0a0f20 0%,#101a3d 55%,#1a2b6b 100%)',
+    bestSwellDir: ['S', 'SSE', 'SE'],
+    bestWindDir: ['N', 'NW', 'NE'],
+    description: 'Praia urbana com ondas consistentes de sul.',
+  },
+];
+
+function getBeachById(id) {
+  return BEACHES.find(b => b.id === id) || BEACHES[0];
+}
