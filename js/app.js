@@ -418,6 +418,7 @@ const S = {
   sgData:        null,
   sgBeach:       null,
   feeling:       'bom',
+  _loginMode:     'login',
   commFeeling:   'bom',
   commBeach:     localStorage.getItem('wc_beach') || 'itapua',
   tideBeach:     localStorage.getItem('wc_beach') || 'itapua',
@@ -510,62 +511,105 @@ function hideSplash() {
 // LOGIN
 // ═══════════════════════════════════════════════════════════
 function renderLogin() {
+  // Detecta se esta no formulario de cadastro (para alternar)
+  const isRegister = S._loginMode === 'register';
+
   root().innerHTML = `
     <div class="login-screen">
-      <div class="login-bg"></div>
-      <div class="login-content">
-        <div class="login-logo">
-          <svg viewBox="0 0 80 50" fill="none" class="login-wave">
-            <path d="M0 25 Q10 8 20 25 Q30 42 40 25 Q50 8 60 25 Q70 42 80 25" stroke="white" stroke-width="4" stroke-linecap="round"/>
-          </svg>
-          <span>WaveCheck</span>
+
+      <!-- PAINEL ESQUERDO — identidade visual -->
+      <div class="login-left">
+        <div class="login-brand">
+          <div class="login-brand-icon">
+            <svg viewBox="0 0 80 50" fill="none" width="36" height="22">
+              <path d="M0 25 Q10 8 20 25 Q30 42 40 25 Q50 8 60 25 Q70 42 80 25"
+                stroke="white" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="login-brand-name">WaveCheck</span>
         </div>
-        <button id="btn-google" class="btn-google">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Entrar com Google
-        </button>
-        <div class="login-divider"><span>ou use e-mail</span></div>
-        <div class="login-card">
-          <div class="auth-tabs">
-            <button class="atab active" data-t="login">Entrar</button>
-            <button class="atab" data-t="register">Criar conta</button>
+        <p class="login-brand-desc">Surf check com dados reais.<br/>Swell, vento, mare e score para cada praia.</p>
+      </div>
+
+      <!-- PAINEL DIREITO — formulario -->
+      <div class="login-right">
+        <div class="login-form-wrap">
+
+          ${isRegister ? `
+          <!-- CADASTRO -->
+          <h2 class="login-form-title">Criar conta</h2>
+          <p class="login-form-sub">Ja tem conta? <button class="login-switch-btn" id="btn-switch-login">Entrar</button></p>
+
+          <div class="login-field">
+            <label class="login-field-label">NOME</label>
+            <input id="r-name" type="text" class="login-input" placeholder="Seu nome"/>
           </div>
-          <div id="form-login" class="auth-form">
-            <div class="field-wrap"><label class="field-label">E-mail</label>
-              <input id="l-email" type="email" class="field-input" placeholder="seu@email.com" autocomplete="email"/></div>
-            <div class="field-wrap"><label class="field-label">Senha</label>
-              <input id="l-pass" type="password" class="field-input" placeholder="sua senha" autocomplete="current-password"/></div>
-            <button id="btn-login" class="btn-auth">Entrar</button>
-            <p id="login-msg" class="auth-msg"></p>
+          <div class="login-field">
+            <label class="login-field-label">E-MAIL</label>
+            <input id="r-email" type="email" class="login-input" placeholder="seu@email.com" autocomplete="email"/>
           </div>
-          <div id="form-register" class="auth-form hidden">
-            <div class="field-wrap"><label class="field-label">Nome</label>
-              <input id="r-name" type="text" class="field-input" placeholder="Seu nome"/></div>
-            <div class="field-wrap"><label class="field-label">E-mail</label>
-              <input id="r-email" type="email" class="field-input" placeholder="seu@email.com"/></div>
-            <div class="field-wrap"><label class="field-label">Senha</label>
-              <input id="r-pass" type="password" class="field-input" placeholder="mínimo 6 caracteres"/></div>
-            <button id="btn-register" class="btn-auth">Criar conta</button>
-            <p id="register-msg" class="auth-msg"></p>
+          <div class="login-field">
+            <label class="login-field-label">SENHA</label>
+            <input id="r-pass" type="password" class="login-input" placeholder="minimo 6 caracteres" autocomplete="new-password"/>
           </div>
+          <p id="register-msg" class="login-msg"></p>
+          <button id="btn-register" class="login-btn-primary">Criar conta</button>
+
+          ` : `
+          <!-- LOGIN -->
+          <h2 class="login-form-title">Entre na sua conta</h2>
+
+          <div class="login-field">
+            <label class="login-field-label">E-MAIL</label>
+            <input id="l-email" type="email" class="login-input" placeholder="seu@email.com" autocomplete="email"/>
+          </div>
+          <div class="login-field">
+            <label class="login-field-label">SENHA</label>
+            <input id="l-pass" type="password" class="login-input" placeholder="Sua senha" autocomplete="current-password"/>
+          </div>
+          <p id="login-msg" class="login-msg"></p>
+          <button id="btn-login" class="login-btn-primary">Entrar</button>
+
+          <div class="login-divider-row"><span>ou continue com</span></div>
+
+          <button id="btn-google" class="login-btn-social">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Entrar com Google
+          </button>
+
+          <div class="login-create-row">
+            <button class="login-switch-btn" id="btn-switch-register">Criar uma conta</button>
+          </div>
+          `}
+
         </div>
       </div>
+
     </div>`;
   bindLoginEvents();
 }
 
 function bindLoginEvents() {
-  document.querySelectorAll('.atab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.atab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.auth-form').forEach(f => f.classList.add('hidden'));
-      document.getElementById('form-' + btn.dataset.t)?.classList.remove('hidden');
-    });
+  // Alternar entre login e cadastro — re-renderiza o formulario
+  document.getElementById('btn-switch-register')?.addEventListener('click', () => {
+    S._loginMode = 'register'; renderLogin();
   });
+  document.getElementById('btn-switch-login')?.addEventListener('click', () => {
+    S._loginMode = 'login'; renderLogin();
+  });
+
+  // Google
   document.getElementById('btn-google')?.addEventListener('click', async () => {
-    try { await auth.signInWithPopup(googleProvider); } catch(e) { toast(ptErr(e.message), 'err'); }
+    const btn = document.getElementById('btn-google');
+    if (btn) { btn.textContent = 'Conectando...'; btn.disabled = true; }
+    try { await auth.signInWithPopup(googleProvider); }
+    catch(e) {
+      toast(ptErr(e.message), 'err');
+      if (btn) { btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Entrar com Google`; btn.disabled = false; }
+    }
   });
+
+  // Login com e-mail
   document.getElementById('btn-login')?.addEventListener('click', async () => {
     const email = fval('l-email'), pass = fval('l-pass');
     const msg = document.getElementById('login-msg');
@@ -573,19 +617,43 @@ function bindLoginEvents() {
     const btn = document.getElementById('btn-login');
     btn.textContent = 'Entrando...'; btn.disabled = true;
     try { await auth.signInWithEmailAndPassword(email, pass); }
-    catch(e) { msg.style.color='var(--err)'; msg.textContent=ptErr(e.message); btn.textContent='Entrar'; btn.disabled=false; }
+    catch(e) {
+      msg.style.color = 'var(--err)';
+      msg.textContent = ptErr(e.message);
+      btn.textContent = 'Entrar'; btn.disabled = false;
+    }
   });
+
+  // Pressionar Enter nos inputs de login
+  ['l-email','l-pass'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('btn-login')?.click();
+    });
+  });
+
+  // Cadastro
   document.getElementById('btn-register')?.addEventListener('click', async () => {
-    const name=fval('r-name'), email=fval('r-email'), pass=fval('r-pass');
-    const msg = document.getElementById('register-msg');
-    if (!name||!email||!pass) { msg.textContent='Preencha todos os campos.'; return; }
-    if (pass.length<6) { msg.textContent='Senha mínima: 6 caracteres.'; return; }
+    const name = fval('r-name'), email = fval('r-email'), pass = fval('r-pass');
+    const msg  = document.getElementById('register-msg');
+    if (!name || !email || !pass) { msg.textContent = 'Preencha todos os campos.'; return; }
+    if (pass.length < 6) { msg.textContent = 'Senha minima: 6 caracteres.'; return; }
     const btn = document.getElementById('btn-register');
-    btn.textContent='Criando...'; btn.disabled=true;
+    btn.textContent = 'Criando...'; btn.disabled = true;
     try {
       const cred = await auth.createUserWithEmailAndPassword(email, pass);
       await cred.user.updateProfile({ displayName: name });
-    } catch(e) { msg.style.color='var(--err)'; msg.textContent=ptErr(e.message); btn.textContent='Criar conta'; btn.disabled=false; }
+    } catch(e) {
+      msg.style.color = 'var(--err)';
+      msg.textContent = ptErr(e.message);
+      btn.textContent = 'Criar conta'; btn.disabled = false;
+    }
+  });
+
+  // Enter no cadastro
+  ['r-name','r-email','r-pass'].forEach(id => {
+    document.getElementById(id)?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('btn-register')?.click();
+    });
   });
 }
 
