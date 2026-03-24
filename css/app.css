@@ -1151,3 +1151,19 @@ html {
   .hero-waves { animation: none; }
   .splash-wave { animation: none; }
 }
+/* ── Gráficos completos de previsão ─────────────────────── */
+.full-chart-wrap {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r-md);
+  padding: 12px 8px 4px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.full-chart-wrap svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}

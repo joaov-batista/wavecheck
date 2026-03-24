@@ -32,56 +32,100 @@ const db   = firebase.firestore();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 // ═══════════════════════════════════════════════════════════
-// PRAIAS — BAHIA / SALVADOR (todas as principais)
+// PRAIAS — BAHIA / SALVADOR (coordenadas verificadas com offshore preciso)
+// lat/lon  = posição da praia (UI, mapa)
+// offshoreLat/offshoreLon = ponto offshore para API de previsão
+// Níveis baseados em: fundo (areia/pedra/recife), corrente, potência, perigo de wipeout
 // ═══════════════════════════════════════════════════════════
 const BEACHES = [
-  // ── Costa Atlântica Norte (Litoral Norte) ──
-  { id:'forte',        name:'Praia do Forte',     region:'Litoral Norte, BA', lat:-12.5774, lon:-38.0048, bestSwell:['NE','ENE','N'],  bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#0a2a1a 0%,#0d6640 55%,#12a05a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Destino paradisíaco com recife de coral. Mar calmo na maior parte.' },
-  { id:'guarajuba',    name:'Guarajuba',           region:'Litoral Norte, BA', lat:-12.6200, lon:-38.0800, bestSwell:['NE','ENE','E'],  bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#0a1a2a 0%,#0d406a 55%,#1268aa 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Beach break clássico do litoral norte. Frequentada por famílias e iniciantes.' },
-  { id:'arembepe',     name:'Arembepe',            region:'Litoral Norte, BA', lat:-12.7600, lon:-38.1600, bestSwell:['NE','ENE','E'],  bestWind:['SW','W','NW'],  grad:'linear-gradient(145deg,#1a2a0a 0%,#3a6a10 55%,#5aaa20 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Ondas consistentes. Famosa por sua colônia hippie. Picos variados.' },
-  { id:'interlagos',   name:'Interlagos',          region:'Litoral Norte, BA', lat:-12.7800, lon:-38.1800, bestSwell:['NE','N','NNE'],  bestWind:['S','SW'],       grad:'linear-gradient(145deg,#2a0a1a 0%,#6a1a4a 55%,#aa2a7a 100%)', orientation:'N',  type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Praia tranquila com ondas boas em dias de swell de norte.' },
-  // ── Orla de Salvador ──
-
-  { id:'stella_maris', name:'Stella Maris',        region:'Salvador, BA',      lat:-12.9400, lon:-38.3100, bestSwell:['NE','ENE','E'],  bestWind:['SW','W','NW'],  grad:'linear-gradient(145deg,#2a1a0a 0%,#7a3a1a 55%,#cc6a2a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Beach break com bancadas boas. Popular entre os surfistas locais de Salvador.' },
-  { id:'itapua',       name:'Itapoã',              region:'Salvador, BA',      lat:-12.9580, lon:-38.3280, bestSwell:['NE','ENE','E'],  bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#1a2a10 0%,#2d6b1a 55%,#4aaa28 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Praia urbana famosa. Boa para iniciantes. Ondas acessíveis o ano todo.' },
-  { id:'amaralina',    name:'Amaralina',           region:'Salvador, BA',      lat:-12.9820, lon:-38.4320, bestSwell:['NE','N','NNE'],  bestWind:['S','SW'],       grad:'linear-gradient(145deg,#0a2a2a 0%,#1a6a6a 55%,#2aaaaa 100%)', orientation:'N',  type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Praia de bairro tradicional. Boa quando o swell de norte aparece.' },
-  { id:'jardim_armacao',name:'Jardim de Allah',    region:'Salvador, BA',      lat:-12.9900, lon:-38.4500, bestSwell:['NE','N'],        bestWind:['S','SW','SE'],  grad:'linear-gradient(145deg,#1a1a0a 0%,#4a4a1a 55%,#8a8a2a 100%)', orientation:'N',  type:'beach_break', idealTide:'low',  level:'iniciante',     desc:'Praia urbana no coração da orla. Mar calmo frequente, bom para aprender.' },
-  { id:'ondina',       name:'Ondina',              region:'Salvador, BA',      lat:-13.0100, lon:-38.5100, bestSwell:['NE','N','NW'],   bestWind:['S','SE','SW'],  grad:'linear-gradient(145deg,#0a1a2a 0%,#1a3a6a 55%,#2a5aaa 100%)', orientation:'NW', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Perto do Farol da Barra. Recebe ondas de norte e noroeste nos dias certos.' },
-  { id:'barra',        name:'Barra',               region:'Salvador, BA',      lat:-13.0100, lon:-38.5200, bestSwell:['N','NW','NNW'],  bestWind:['SE','S','E'],   grad:'linear-gradient(145deg,#0a0a2a 0%,#1a1a5a 55%,#2a2a9a 100%)', orientation:'NW', type:'beach_break', idealTide:'low',  level:'intermediario', desc:'Praia do Farol da Barra. Melhor com swell de norte. Ponto icônico de Salvador.' },
-  { id:'flamengo',     name:'Flamengo',            region:'Salvador, BA',      lat:-12.9700, lon:-38.4100, bestSwell:['NE','N','NNE'],  bestWind:['S','SW','SE'],  grad:'linear-gradient(145deg,#0a1a2a 0%,#1a4a7a 55%,#2a7acc 100%)', orientation:'N',  type:'beach_break', idealTide:'low',  level:'intermediario', desc:'Beach break consistente. Bom para intermediários em dias de NE.' },
-  { id:'piata',        name:'Piatã',               region:'Salvador, BA',      lat:-12.9800, lon:-38.4200, bestSwell:['NE','N','NNE'],  bestWind:['S','SW'],       grad:'linear-gradient(145deg,#0a2a1a 0%,#1a6a4a 55%,#2aaa7a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Boa para iniciantes e famílias. Ondas suaves na maior parte do ano.' },
-  { id:'placabuquerque',name:'Placabuquerque',     region:'Salvador, BA',      lat:-12.9600, lon:-38.3800, bestSwell:['NE','ENE'],      bestWind:['SW','W'],       grad:'linear-gradient(145deg,#2a1a0a 0%,#6a4a1a 55%,#aa8a2a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Pico entre Flamengo e Stella Maris. Beach break com bons dias de NE.' },
-  { id:'rio_vermelho',  name:'Rio Vermelho',       region:'Salvador, BA',      lat:-13.0000, lon:-38.4900, bestSwell:['NE','N'],        bestWind:['S','SE','SW'],  grad:'linear-gradient(145deg,#2a0a0a 0%,#7a1a1a 55%,#cc2a2a 100%)', orientation:'N',  type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Bairro boêmio e icônico. Ondas pequenas mas divertidas para aprender.' },
-  // ── Litoral Sul / Ilha ──
-  { id:'jaguaribe',    name:'Jaguaribe',           region:'Salvador, BA',      lat:-12.9250, lon:-38.3100, bestSwell:['NE','ENE','E'],  bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#1a0a0a 0%,#5a1a1a 55%,#9a2a2a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'avancado',      desc:'Um dos picos mais respeitados de Salvador. Ondas fortes e tubulares.' },
-  { id:'corsario',     name:'Corsario',             region:'Salvador, BA',      lat:-12.9550, lon:-38.3450, bestSwell:['NE','ENE','E'],  bestWind:['SW','W'],       grad:'linear-gradient(145deg,#0a1a2a 0%,#1a5a7a 55%,#2a9acc 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Praia entre Itapua e Stella Maris. Ondas consistentes de NE.' },
-  { id:'inema',        name:'Praia do INEMA',       region:'Salvador, BA',      lat:-12.9350, lon:-38.3200, bestSwell:['NE','ENE'],      bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#0a2a1a 0%,#1a6a3a 55%,#2aaa5a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Praia reservada com acesso limitado. Beach break de qualidade.' },
-  { id:'praia_grande', name:'Praia Grande (Ilha)', region:'Ilha de Itaparica, BA', lat:-12.7600, lon:-38.6400, bestSwell:['SE','S','SSE'], bestWind:['NE','N','NW'], grad:'linear-gradient(145deg,#0a2a2a 0%,#1a7a6a 55%,#2accaa 100%)', orientation:'S',  type:'beach_break', idealTide:'mid',  level:'avancado',      desc:'Ilha de Itaparica. Swell de sul abre ondas longas e bem formadas.' },
+  // ── Litoral Norte (N→S) ──
+  { id:'villas',       name:'Villas do Atlântico', region:'Litoral Norte, BA', lat:-12.89139660942281,  lon:-38.28960528504977,  offshoreLat:-12.89227605202664,  offshoreLon:-38.28754830566005,  bestSwell:['NE','ENE','E'], bestWind:['SW','W','NW'],  grad:'linear-gradient(145deg,#0a2a1a 0%,#0d6640 55%,#12a05a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Fundo de areia, ondas suaves. Sem corrente forte. Ótima para primeira aula.' },
+  { id:'mareblu',      name:'Maré Blu (Villas)',   region:'Litoral Norte, BA', lat:-12.887753821948387, lon:-38.28621752039244,  offshoreLat:-12.888245098741866, offshoreLon:-38.28558595941240,  bestSwell:['NE','ENE'],    bestWind:['SW','W'],       grad:'linear-gradient(145deg,#0a1a3a 0%,#0d3a7a 55%,#1265cc 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Fundo de areia limpo. Mar aberto mas ondas bem comportadas. Bom para iniciantes.' },
+  { id:'ipitanga',     name:'Ipitanga',            region:'Litoral Norte, BA', lat:-12.916638591217623, lon:-38.309438302519766, offshoreLat:-12.917895647619908, offshoreLon:-38.305675432009650, bestSwell:['NE','ENE','E'], bestWind:['SW','W'],       grad:'linear-gradient(145deg,#1a2a0a 0%,#3a6a10 55%,#5aaa20 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Fundo de areia com picos variados. Pode ter corrente lateral em swells maiores.' },
+  // ── Orla de Salvador (N→S, ordem geográfica correta) ──
+  { id:'flamengo',     name:'Flamengo',            region:'Salvador, BA',      lat:-12.928226659664235, lon:-38.31716518231932,  offshoreLat:-12.929131279222597, offshoreLon:-38.31435013816218,  bestSwell:['NE','ENE','E'], bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#0a1a2a 0%,#1a4a7a 55%,#2a7acc 100%)', orientation:'NE', type:'beach_break', idealTide:'low',  level:'intermediario', desc:'Fundo de areia com picos rápidos. Corrente lateral presente em dias de NE forte. Intermediário.' },
+  { id:'aleluia',      name:'Praia de Aleluia',    region:'Salvador, BA',      lat:-12.928089534740575, lon:-38.31846698374864,  offshoreLat:-12.929109234876673, offshoreLon:-38.31310828452411,  bestSwell:['NE','ENE'],    bestWind:['SW','W'],       grad:'linear-gradient(145deg,#1a0a2a 0%,#4a1a7a 55%,#7a2acc 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Pico contíguo ao Flamengo. Fundo de areia, ondas um pouco mais tubulares. Intermediário.' },
+  { id:'padang',       name:'Padang',              region:'Salvador, BA',      lat:-12.934501938787555, lon:-38.325041076766844, offshoreLat:-12.934721527471902, offshoreLon:-38.322906038474706, bestSwell:['NE','ENE','E'], bestWind:['SW','W'],       grad:'linear-gradient(145deg,#2a1a0a 0%,#6a3a0a 55%,#aa6a10 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Bancadas de areia bem definidas. Ondas potentes em swell de NE. Corrente moderada.' },
+  { id:'stella_maris', name:'Stella Maris',        region:'Salvador, BA',      lat:-12.93552156644312,  lon:-38.30850000000000,  offshoreLat:-12.93650000000000,  offshoreLon:-38.30500000000000,  bestSwell:['NE','ENE','E'], bestWind:['SW','W','NW'],  grad:'linear-gradient(145deg,#2a1a0a 0%,#7a3a1a 55%,#cc6a2a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Beach break de areia. Ondas rápidas com boas bancadas. Corrente presente. Intermediário.' },
+  { id:'pedra_do_sal', name:'Pedra do Sal',        region:'Salvador, BA',      lat:-12.951727874061188, lon:-38.34626245823274,  offshoreLat:-12.954477170482198, offshoreLon:-38.343915160725075, bestSwell:['NE','ENE','E'], bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#1a1a0a 0%,#5a5a0a 55%,#9a9a10 100%)', orientation:'NE', type:'reef_break',  idealTide:'mid',  level:'avancado',      desc:'Fundo de pedra/recife raso. Wipeout pode machucar sério. Corrente de retorno forte. Avançado.' },
+  { id:'itapua',       name:'Itapuã',              region:'Salvador, BA',      lat:-12.96100000000000,  lon:-38.32700000000000,  offshoreLat:-12.96250000000000,  offshoreLon:-38.32300000000000,  bestSwell:['NE','ENE','E'], bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#1a2a10 0%,#2d6b1a 55%,#4aaa28 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Fundo de areia uniforme. Ondas acessíveis o ano todo. Sem corrente expressiva. Ideal para iniciantes.' },
+  { id:'jaguaribe',    name:'Jaguaribe',           region:'Salvador, BA',      lat:-12.960148738054910, lon:-38.39482356754810,  offshoreLat:-12.962114370424530, offshoreLon:-38.39373995514857,  bestSwell:['NE','ENE','E'], bestWind:['SW','S','W'],   grad:'linear-gradient(145deg,#1a0a0a 0%,#5a1a1a 55%,#9a2a2a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Fundo de areia, ondas curtas e sem força. Sem corrente relevante. Frequentado por famílias. Iniciante.' },
+  { id:'piata',        name:'Piatã',               region:'Salvador, BA',      lat:-12.97100000000000,  lon:-38.37700000000000,  offshoreLat:-12.97250000000000,  offshoreLon:-38.37200000000000,  bestSwell:['NE','N','NNE'], bestWind:['S','SW'],       grad:'linear-gradient(145deg,#0a2a1a 0%,#1a6a4a 55%,#2aaa7a 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Areia fina, ondas suaves. Ótima para aprender. Frequentada por famílias e escolinhas de surf.' },
+  { id:'corsario',     name:'Corsário',            region:'Salvador, BA',      lat:-12.967830101051696, lon:-38.406093774137695, offshoreLat:-12.968916506208465, offshoreLon:-38.404295475008070, bestSwell:['NE','ENE','E'], bestWind:['SW','W'],       grad:'linear-gradient(145deg,#0a1a2a 0%,#1a5a7a 55%,#2a9acc 100%)', orientation:'NE', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Areia com afloramentos rochosos nas extremidades. Corrente lateral em NE forte. Intermediário.' },
+  { id:'amaralina',    name:'Amaralina',           region:'Salvador, BA',      lat:-13.014134994676306, lon:-38.476665227452486, offshoreLat:-13.01550000000000,  offshoreLon:-38.47000000000000,  bestSwell:['NE','N','NNE'], bestWind:['S','SW'],       grad:'linear-gradient(145deg,#0a2a2a 0%,#1a6a6a 55%,#2aaaaa 100%)', orientation:'N',  type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Fundo irregular com pedras esparsas. Corrente moderada. Ondas irregulares. Intermediário.' },
+  { id:'rio_vermelho', name:'Rio Vermelho',        region:'Salvador, BA',      lat:-13.011655407861237, lon:-38.49230649536114,  offshoreLat:-13.01250000000000,  offshoreLon:-38.48500000000000,  bestSwell:['NE','N'],       bestWind:['S','SE','SW'],  grad:'linear-gradient(145deg,#2a0a0a 0%,#7a1a1a 55%,#cc2a2a 100%)', orientation:'N',  type:'beach_break', idealTide:'mid',  level:'iniciante',     desc:'Areia, ondas pequenas e curtas. Sem corrente forte. Ótimo para iniciantes e longboard.' },
+  { id:'ondina',       name:'Ondina',              region:'Salvador, BA',      lat:-13.011145420689363, lon:-38.51081827480087,  offshoreLat:-13.01250000000000,  offshoreLon:-38.50500000000000,  bestSwell:['NE','N','NW'],  bestWind:['S','SE','SW'],  grad:'linear-gradient(145deg,#0a1a2a 0%,#1a3a6a 55%,#2a5aaa 100%)', orientation:'NW', type:'beach_break', idealTide:'mid',  level:'intermediario', desc:'Fundo misto areia e pedra. Corrente de retorno presente. Ondas imprevisíveis. Intermediário.' },
+  { id:'barra_farol',  name:'Farol da Barra',      region:'Salvador, BA',      lat:-13.009004379989454, lon:-38.53221240364270,  offshoreLat:-13.009231734136032, offshoreLon:-38.533359764283695, bestSwell:['N','NW','NNW'],  bestWind:['SE','S','E'],   grad:'linear-gradient(145deg,#0a0a2a 0%,#1a1a5a 55%,#2a2a9a 100%)', orientation:'NW', type:'beach_break', idealTide:'low',  level:'intermediario', desc:'Fundo de areia na maré certa, pedras expostas na maré baixa. Corrente de ponta. Intermediário.' },
+  { id:'porto_barra',  name:'Porto da Barra',      region:'Salvador, BA',      lat:-13.004141894624212, lon:-38.53328985685257,  offshoreLat:-13.004023624682514, offshoreLon:-38.533635039522245, bestSwell:['N','NW'],        bestWind:['SE','S'],       grad:'linear-gradient(145deg,#0a1a2a 0%,#0d3a6a 55%,#1260aa 100%)', orientation:'W',  type:'beach_break', idealTide:'any',  level:'iniciante',     desc:'Baía abrigada, fundo de areia. Quase sem ondas. Ideal para aulas e natação.' },
+  { id:'espanhol',     name:'Praia do Espanhol',   region:'Salvador, BA',      lat:-13.005508008330157, lon:-38.53302955560815,  offshoreLat:-13.005610850512840, offshoreLon:-38.533503740132940, bestSwell:['N','NW'],        bestWind:['SE','S'],       grad:'linear-gradient(145deg,#0a2a2a 0%,#0d5a5a 55%,#10aaaa 100%)', orientation:'W',  type:'reef_break',  idealTide:'high', level:'avancado',      desc:'Recife raso e irregular. Wipeout = contato direto com pedra. Apenas surfistas experientes.' },
 ];
 
 const DIRS     = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
 const deg2card = d => DIRS[Math.round((+d) / 22.5) % 16];
 
+// ── Haversine distance (metros) ──────────────────────────
+function haversineM(lat1, lon1, lat2, lon2) {
+  const R = 6371000, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 // Validacao de praias — remove entradas invalidas em tempo de execucao
 (function validateBeaches() {
   const INVALID_NAMES = ['placa da ford','placaford','unnamed','test','teste','praia x'];
-  const seen = new Set();
+  const seen    = new Set();
+  const coordSeen = []; // [{id, lat, lon}] para checar proximidade
+
   for (let i = BEACHES.length - 1; i >= 0; i--) {
     const b = BEACHES[i];
     const nameL = (b.name || '').toLowerCase().trim();
     const issues = [];
-    if (!b.id || !b.name || !b.lat || !b.lon)       issues.push('campos obrigatorios ausentes');
-    if (INVALID_NAMES.some(n => nameL.includes(n)))  issues.push('nome invalido: ' + b.name);
-    if (seen.has(b.id))                              issues.push('id duplicado: ' + b.id);
-    if (Math.abs(b.lat) > 90 || Math.abs(b.lon) > 180) issues.push('coordenadas invalidas');
+
+    if (!b.id || !b.name || !b.lat || !b.lon)          issues.push('campos obrigatórios ausentes');
+    if (INVALID_NAMES.some(n => nameL.includes(n)))     issues.push('nome inválido: ' + b.name);
+    if (seen.has(b.id))                                 issues.push('id duplicado: ' + b.id);
+    if (Math.abs(b.lat) > 90 || Math.abs(b.lon) > 180) issues.push('coordenadas inválidas');
+
+    // Detecta coordenadas idênticas ou praias < 300m entre si
+    if (!issues.length) {
+      for (const other of coordSeen) {
+        const dist = haversineM(b.lat, b.lon, other.lat, other.lon);
+        if (dist < 1) {
+          issues.push(`coordenadas idênticas a "${other.id}"`);
+          break;
+        }
+        if (dist < 100) {
+          console.warn(`[WaveCheck] Praias muito próximas (${Math.round(dist)}m): "${b.id}" ↔ "${other.id}"`);
+        }
+      }
+    }
+
     if (issues.length) {
       console.error('[WaveCheck] Praia removida (' + b.id + '):', issues.join('; '));
       BEACHES.splice(i, 1);
     } else {
       seen.add(b.id);
+      coordSeen.push({ id: b.id, lat: b.lat, lon: b.lon });
     }
   }
+
+  console.log(`[WaveCheck] ${BEACHES.length} praias carregadas OK`);
 })();
+
+// ── Garante que S.beach sempre aponta para praia válida ──
+// Roda após validateBeaches para cobrir o caso em que o id
+// salvo no localStorage foi removido pela validação.
+function ensureValidBeach() {
+  const saved = localStorage.getItem('wc_beach');
+  const valid = BEACHES.find(b => b.id === saved);
+  if (!valid) {
+    const fallback = BEACHES[0]?.id || '';
+    localStorage.setItem('wc_beach', fallback);
+    return fallback;
+  }
+  return saved;
+}
 
 // ═══════════════════════════════════════════════════════════
 // STORMGLASS — controle de uso (max 10 req/dia, 6h por praia)
@@ -147,8 +191,10 @@ async function fetchStormglass(beach) {
   const start = now.toISOString();
   const endS  = end.toISOString();
 
+  const _sgLat = beach.offshoreLat || beach.lat;
+  const _sgLon = beach.offshoreLon || beach.lon;
   const params = 'swellHeight,swellPeriod,swellDirection,windSpeed,windDirection,waterTemperature,tideHeight';
-  const url = `https://api.stormglass.io/v2/weather/point?lat=${beach.lat}&lng=${beach.lon}&params=${params}&start=${start}&end=${endS}&source=sg`;
+  const url = `https://api.stormglass.io/v2/weather/point?lat=${_sgLat}&lng=${_sgLon}&params=${params}&start=${start}&end=${endS}&source=sg`;
 
   try {
     sgMarkUsed(beach.id);
@@ -425,7 +471,7 @@ function genWhyText(slot, beach, bd, windType, tideType) {
 const S = {
   user:          null,
   profile:       null,
-  beach:         localStorage.getItem('wc_beach') || 'itapua',
+  beach:         ensureValidBeach(),
   dark:          localStorage.getItem('wc_dark') !== 'false',
   page:          'home',
   slots:         [],
@@ -435,8 +481,8 @@ const S = {
   feeling:       'bom',
   _loginMode:     'login',
   commFeeling:   'bom',
-  commBeach:     localStorage.getItem('wc_beach') || 'itapua',
-  tideBeach:     localStorage.getItem('wc_beach') || 'itapua',
+  commBeach:     ensureValidBeach(),
+  tideBeach:     ensureValidBeach(),
   pendingCI:     null,
   userLevel:     localStorage.getItem('wc_level') || 'intermediario',
   loading:       false,
@@ -878,11 +924,35 @@ function appShell() {
               <div class="section"><div class="sec-row"><h3 class="sec-title">Proximos dias</h3></div><div id="fc-daily" class="daily-col"></div></div>
             </div>
             <div id="view-technical" class="hidden">
-              <div class="section"><h3 class="sec-title" style="margin-bottom:12px">Condicoes atuais</h3><div id="fc-tech-grid" class="tech-grid"></div></div>
+              <div class="section"><h3 class="sec-title" style="margin-bottom:12px">Condições atuais</h3><div id="fc-tech-grid" class="tech-grid"></div></div>
               <div id="fc-why-block" class="why-block" style="margin-bottom:16px"></div>
               <div class="section"><h3 class="sec-title" style="margin-bottom:12px">Score detalhado</h3><div id="fc-breakdown-bars" class="breakdown-bars"></div></div>
-              <div class="section"><div class="sec-row"><h3 class="sec-title">Hoje (tecnico)</h3></div><div id="fc-tech-hourly" class="hourly-scroll-wrap"></div></div>
-              <div class="section"><div class="sec-row"><h3 class="sec-title">Semana</h3></div><div id="fc-tech-daily" class="daily-col"></div></div>
+              <!-- GRÁFICOS COMPLETOS -->
+              <div class="section">
+                <div class="sec-row"><h3 class="sec-title">📈 Score — Hoje por hora</h3></div>
+                <div id="fc-chart-score" class="full-chart-wrap"></div>
+              </div>
+              <div class="section">
+                <div class="sec-row"><h3 class="sec-title">🌊 Altura do Swell (m)</h3></div>
+                <div id="fc-chart-swell" class="full-chart-wrap"></div>
+              </div>
+              <div class="section">
+                <div class="sec-row"><h3 class="sec-title">⏱ Período (s)</h3></div>
+                <div id="fc-chart-period" class="full-chart-wrap"></div>
+              </div>
+              <div class="section">
+                <div class="sec-row"><h3 class="sec-title">💨 Vento (km/h)</h3></div>
+                <div id="fc-chart-wind" class="full-chart-wrap"></div>
+              </div>
+              <div class="section">
+                <div class="sec-row"><h3 class="sec-title">📅 Próximos 5 dias — Score médio</h3></div>
+                <div id="fc-chart-week" class="full-chart-wrap"></div>
+              </div>
+              <div class="section">
+                <div class="sec-row"><h3 class="sec-title">📊 Swell × Período (5 dias)</h3></div>
+                <div id="fc-chart-swell5d" class="full-chart-wrap"></div>
+              </div>
+              <div class="section"><div class="sec-row"><h3 class="sec-title">Semana (cards)</h3></div><div id="fc-tech-daily" class="daily-col"></div></div>
             </div>
             <div class="fc-side-panel">
               <div id="fc-side-score" class="side-score-card"></div>
@@ -1337,8 +1407,10 @@ async function loadForecast(beachId) {
   const beach = BEACHES.find(x => x.id === bId);
   if (!beach) return;
 
-  const mUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${beach.lat}&longitude=${beach.lon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&timezone=America%2FSao_Paulo&forecast_days=5`;
-  const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${beach.lat}&longitude=${beach.lon}&hourly=windspeed_10m,winddirection_10m&timezone=America%2FSao_Paulo&forecast_days=5`;
+  const _apiLat = beach.offshoreLat || beach.lat;
+  const _apiLon = beach.offshoreLon || beach.lon;
+  const mUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${_apiLat}&longitude=${_apiLon}&hourly=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction,swell_wave_period&timezone=America%2FSao_Paulo&forecast_days=5`;
+  const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${_apiLat}&longitude=${_apiLon}&hourly=windspeed_10m,winddirection_10m&timezone=America%2FSao_Paulo&forecast_days=5`;
 
   try {
     const [mr, wr] = await Promise.all([fetch(mUrl), fetch(wUrl)]);
@@ -1551,7 +1623,12 @@ async function renderForecastPage() {
     <div class="why-header"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Por que está assim?</span></div>
     <p class="why-text">${cur.whyText}</p>` : '';
   renderBreakdownBars('fc-breakdown-bars', cur.breakdown);
-  renderHourlyCards('fc-tech-hourly', todaySlots(), true);
+  renderLineChart('fc-chart-score',  todaySlots(), 'score',  { label:'Score', color:'#29b6f6', min:0, max:100, unit:'' });
+  renderLineChart('fc-chart-swell',  todaySlots(), 'sh',     { label:'Altura', color:'#00e676', min:0, max:null, unit:'m' });
+  renderLineChart('fc-chart-period', todaySlots(), 'sp',     { label:'Período', color:'#ffb74d', min:0, max:null, unit:'s' });
+  renderLineChart('fc-chart-wind',   todaySlots(), 'ws',     { label:'Vento', color:'#ef5350', min:0, max:null, unit:'km/h' });
+  renderWeekChart('fc-chart-week');
+  renderSwell5dChart('fc-chart-swell5d');
   renderDailyCards('fc-tech-daily');
 
   // ── Painel lateral desktop ──
@@ -2007,6 +2084,210 @@ function renderDailyCards(id) {
       <span class="daily-emoji">${emoji}</span>
     </div>`;
   }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// GRÁFICOS SVG — previsão detalhada
+// ═══════════════════════════════════════════════════════════
+
+function renderLineChart(id, slots, field, opts) {
+  const el = document.getElementById(id);
+  if (!el || !slots.length) return;
+
+  const { label, color, unit } = opts;
+  const vals   = slots.map(s => +s[field] || 0);
+  const hours  = slots.map(s => s.hour != null ? s.hour : '');
+  const minV   = opts.min != null ? opts.min : Math.min(...vals) * 0.85;
+  const maxV   = opts.max != null ? opts.max : Math.max(...vals) * 1.15 || 10;
+  const W = 340, H = 120, PL = 30, PR = 10, PT = 12, PB = 28;
+  const cW = W - PL - PR, cH = H - PT - PB;
+
+  const toX = i  => PL + (i / (vals.length - 1 || 1)) * cW;
+  const toY = v  => PT + cH - ((v - minV) / (maxV - minV || 1)) * cH;
+
+  // Linha principal
+  const linePts = vals.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ');
+  // Área preenchida
+  const areaD   = `M${toX(0).toFixed(1)},${(PT+cH).toFixed(1)} ` +
+    vals.map((v, i) => `L${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(' ') +
+    ` L${toX(vals.length-1).toFixed(1)},${(PT+cH).toFixed(1)} Z`;
+
+  // Encontra melhor e pior
+  const maxIdx = vals.indexOf(Math.max(...vals));
+  const minIdx = vals.indexOf(Math.min(...vals));
+
+  // Labels eixo Y (3 valores)
+  const yLabels = [minV, (minV+maxV)/2, maxV].map(v => {
+    const y = toY(v);
+    const txt = field === 'score' ? Math.round(v) : v.toFixed(1);
+    return `<text x="${PL-4}" y="${y+4}" text-anchor="end" font-size="8" fill="#ffffff55">${txt}</text>`;
+  }).join('');
+
+  // Labels eixo X (a cada 3 horas)
+  const step = Math.max(1, Math.floor(slots.length / 8));
+  const xLabels = slots.map((s, i) => {
+    if (i % step !== 0) return '';
+    return `<text x="${toX(i).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="8" fill="#ffffff55">${s.hour}h</text>`;
+  }).join('');
+
+  // Pontos destaque
+  const dotMax = `<circle cx="${toX(maxIdx)}" cy="${toY(vals[maxIdx])}" r="4" fill="${color}" opacity="0.9"/>
+    <text x="${toX(maxIdx)}" y="${toY(vals[maxIdx])-7}" text-anchor="middle" font-size="8" fill="${color}" font-weight="700">${vals[maxIdx].toFixed(field==='score'?0:1)}${unit}</text>`;
+  const dotMin = maxIdx !== minIdx ? `<circle cx="${toX(minIdx)}" cy="${toY(vals[minIdx])}" r="3" fill="#ffffff33"/>` : '';
+
+  // Linha vertical no horário atual
+  const nowH = new Date().getHours();
+  const nowIdx = slots.findIndex(s => s.hour >= nowH);
+  const nowLine = nowIdx >= 0 ? `<line x1="${toX(nowIdx)}" y1="${PT}" x2="${toX(nowIdx)}" y2="${PT+cH}" stroke="#ffffff33" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="${toX(nowIdx)}" y="${PT-2}" text-anchor="middle" font-size="7" fill="#ffffff66">agora</text>` : '';
+
+  // Grid horizontal
+  const gridLines = [0.25, 0.5, 0.75].map(f => {
+    const y = PT + cH * (1 - f);
+    return `<line x1="${PL}" y1="${y}" x2="${PL+cW}" y2="${y}" stroke="#ffffff0d" stroke-width="1"/>`;
+  }).join('');
+
+  el.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:${H}px;display:block">
+      <defs>
+        <linearGradient id="grad_${id}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0.02"/>
+        </linearGradient>
+        <clipPath id="clip_${id}">
+          <rect x="${PL}" y="${PT}" width="${cW}" height="${cH}"/>
+        </clipPath>
+      </defs>
+      <!-- Grid -->
+      ${gridLines}
+      <!-- Linha base eixo X -->
+      <line x1="${PL}" y1="${PT+cH}" x2="${PL+cW}" y2="${PT+cH}" stroke="#ffffff22" stroke-width="1"/>
+      <!-- Área preenchida -->
+      <path d="${areaD}" fill="url(#grad_${id})" clip-path="url(#clip_${id})"/>
+      <!-- Linha principal -->
+      <polyline points="${linePts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" clip-path="url(#clip_${id})"/>
+      <!-- Linha "agora" -->
+      ${nowLine}
+      <!-- Pontos destaque -->
+      ${dotMax}
+      ${dotMin}
+      <!-- Eixo Y labels -->
+      ${yLabels}
+      <!-- Eixo X labels -->
+      ${xLabels}
+    </svg>`;
+}
+
+function renderWeekChart(id) {
+  const el = document.getElementById(id);
+  if (!el || !S.slots.length) return;
+
+  const days = {};
+  S.slots.forEach(s => {
+    if (!days[s.day]) days[s.day] = [];
+    if (s.hour >= 6 && s.hour <= 18) days[s.day].push(s);
+  });
+  const entries = Object.entries(days).slice(0, 5).filter(([,sl]) => sl.length);
+  if (!entries.length) return;
+
+  const W = 340, H = 140, PL = 36, PR = 10, PT = 14, PB = 36;
+  const cW = W - PL - PR, cH = H - PT - PB;
+  const bW = Math.floor(cW / entries.length * 0.55);
+
+  const bars = entries.map(([day, slots], i) => {
+    const avg   = Math.round(slots.reduce((a,s)=>a+s.score,0)/slots.length);
+    const best  = slots.reduce((a,b)=>a.score>b.score?a:b);
+    const col   = best.color;
+    const bH    = Math.round((avg / 100) * cH);
+    const x     = PL + (i / entries.length) * cW + (cW/entries.length - bW) / 2;
+    const y     = PT + cH - bH;
+    const label = dayName(day).slice(0,3);
+    return `
+      <rect x="${x}" y="${y}" width="${bW}" height="${bH}" rx="4" fill="${col}" opacity="0.85"/>
+      <rect x="${x}" y="${y}" width="${bW}" height="4" rx="2" fill="${col}"/>
+      <text x="${x+bW/2}" y="${y-4}" text-anchor="middle" font-size="9" fill="${col}" font-weight="700">${avg}</text>
+      <text x="${x+bW/2}" y="${PT+cH+14}" text-anchor="middle" font-size="9" fill="#ffffffaa">${label}</text>`;
+  }).join('');
+
+  // Grid
+  const gridLines = [25, 50, 75].map(v => {
+    const y = PT + cH - (v/100)*cH;
+    return `<line x1="${PL}" y1="${y}" x2="${PL+cW}" y2="${y}" stroke="#ffffff0d" stroke-width="1"/>
+      <text x="${PL-4}" y="${y+3}" text-anchor="end" font-size="8" fill="#ffffff44">${v}</text>`;
+  }).join('');
+
+  el.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:${H}px;display:block">
+      ${gridLines}
+      <line x1="${PL}" y1="${PT+cH}" x2="${PL+cW}" y2="${PT+cH}" stroke="#ffffff22" stroke-width="1"/>
+      ${bars}
+    </svg>`;
+}
+
+function renderSwell5dChart(id) {
+  const el = document.getElementById(id);
+  if (!el || !S.slots.length) return;
+
+  const days = {};
+  S.slots.forEach(s => {
+    if (!days[s.day]) days[s.day] = [];
+    if (s.hour >= 6 && s.hour <= 18) days[s.day].push(s);
+  });
+  const entries = Object.entries(days).slice(0, 5).filter(([,sl]) => sl.length);
+  if (!entries.length) return;
+
+  // Dois datasets: altura swell (linha azul) e período (linha laranja, eixo Y2)
+  const W = 340, H = 130, PL = 32, PR = 32, PT = 14, PB = 30;
+  const cW = W - PL - PR, cH = H - PT - PB;
+
+  // Pontos por dia (média de hora de pico)
+  const swellVals  = entries.map(([,sl]) => +Math.max(...sl.map(s=>s.sh)).toFixed(1));
+  const periodVals = entries.map(([,sl]) => Math.round(sl.reduce((a,s)=>a+s.sp,0)/sl.length));
+
+  const maxSw = Math.max(...swellVals) * 1.2 || 2;
+  const maxPd = Math.max(...periodVals) * 1.2 || 15;
+
+  const toX = i  => PL + (i / (entries.length - 1 || 1)) * cW;
+  const toYsw= v => PT + cH - (v / maxSw) * cH;
+  const toYpd= v => PT + cH - (v / maxPd) * cH;
+
+  const swPts = swellVals.map((v,i)  => `${toX(i).toFixed(1)},${toYsw(v).toFixed(1)}`).join(' ');
+  const pdPts = periodVals.map((v,i) => `${toX(i).toFixed(1)},${toYpd(v).toFixed(1)}`).join(' '  );
+
+  const swDots = swellVals.map((v,i) => `<circle cx="${toX(i)}" cy="${toYsw(v)}" r="3.5" fill="#00e676"/>
+    <text x="${toX(i)}" y="${toYsw(v)-7}" text-anchor="middle" font-size="8" fill="#00e676" font-weight="700">${v}m</text>`).join('');
+  const pdDots = periodVals.map((v,i) => `<circle cx="${toX(i)}" cy="${toYpd(v)}" r="3" fill="#ffb74d"/>
+    <text x="${toX(i)}" y="${toYpd(v)+14}" text-anchor="middle" font-size="8" fill="#ffb74d">${v}s</text>`).join('');
+
+  const xLabels = entries.map(([day],i) => `<text x="${toX(i)}" y="${H-4}" text-anchor="middle" font-size="9" fill="#ffffffaa">${dayName(day).slice(0,3)}</text>`).join('');
+
+  // Legenda
+  const legend = `
+    <rect x="${PL}" y="2" width="8" height="4" rx="2" fill="#00e676"/>
+    <text x="${PL+11}" y="8" font-size="8" fill="#00e676">Altura (m)</text>
+    <rect x="${PL+70}" y="2" width="8" height="4" rx="2" fill="#ffb74d"/>
+    <text x="${PL+81}" y="8" font-size="8" fill="#ffb74d">Período (s)</text>`;
+
+  el.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:${H}px;display:block">
+      <defs>
+        <linearGradient id="swellgrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#00e676" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#00e676" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <line x1="${PL}" y1="${PT+cH}" x2="${PL+cW}" y2="${PT+cH}" stroke="#ffffff22" stroke-width="1"/>
+      ${legend}
+      <!-- Área swell -->
+      <path d="M${toX(0)},${PT+cH} ${swellVals.map((v,i)=>`L${toX(i)},${toYsw(v)}`).join(' ')} L${toX(swellVals.length-1)},${PT+cH} Z" fill="url(#swellgrad)"/>
+      <!-- Linha swell -->
+      <polyline points="${swPts}" fill="none" stroke="#00e676" stroke-width="2" stroke-linejoin="round"/>
+      <!-- Linha período -->
+      <polyline points="${pdPts}" fill="none" stroke="#ffb74d" stroke-width="2" stroke-linejoin="round" stroke-dasharray="5,3"/>
+      ${swDots}
+      ${pdDots}
+      ${xLabels}
+    </svg>`;
 }
 
 function renderBreakdownBars(id, bd) {
